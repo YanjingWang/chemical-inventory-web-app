@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Vendor {
+  id             String          @id @default(cuid())
+  name           String          @unique
+  purchaseOrders PurchaseOrder[]
+  createdAt      DateTime        @default(now())
+}
+
+model PurchaseOrder {
+  id               String                  @id @default(cuid())
+  vendorId         String
+  orderNumber      String
+  status           PurchaseOrderStatus     @default(OPEN)
+  vendor           Vendor                  @relation(fields: [vendorId], references: [id])
+  lineItems        PurchaseOrderLineItem[]
+  inventoryItems   InventoryItem[]
+  createdAt        DateTime                @default(now())
+
+  @@unique([vendorId, orderNumber])
+}
+
+model PurchaseOrderLineItem {
+  id              String               @id @default(cuid())
+  purchaseOrderId String
+  chemicalName    String
+  quantityOrdered Float?
+  unit            String?
+  status          LineItemStatus       @default(ORDERED)
+  purchaseOrder   PurchaseOrder        @relation(fields: [purchaseOrderId], references: [id])
+  inventoryItems  InventoryItem[]
+}
+
+model InventoryItem {
+  id               String                   @id @default(cuid())
+  purchaseOrderId  String
+  lineItemId       String
+  chemicalName     String
+  batchNumber      String
+  barcode          String?                  @unique
+  storageLocation  String?
+  receivingStatus  InventoryReceivingStatus @default(RECEIVED_PENDING_BARCODE)
+  receivedAt       DateTime                 @default(now())
+  placedAt         DateTime?
+  purchaseOrder    PurchaseOrder            @relation(fields: [purchaseOrderId], references: [id])
+  lineItem         PurchaseOrderLineItem    @relation(fields: [lineItemId], references: [id])
+  events           InventoryEvent[]
+}
+
+model InventoryEvent {
+  id              String        @id @default(cuid())
+  inventoryItemId String
+  eventType       String
+  payloadJson     String?
+  createdAt       DateTime      @default(now())
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+}
+
+enum PurchaseOrderStatus {
+  OPEN
+  CLOSED
+}
+
+enum LineItemStatus {
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+}
+
+enum InventoryReceivingStatus {
+  RECEIVED_PENDING_BARCODE
+  BARCODE_GENERATED
+  BARCODE_CONFIRMED
+  LOCATION_ASSIGNED
+  PLACED_IN_STORAGE
+}

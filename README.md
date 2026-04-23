@@ -9,7 +9,7 @@ This system simulates a real-world **chemical intake process**, from purchase or
 ## 🚀 Demo
 
 🎥 Watch the demo video here:
-👉 [Demo Video](PASTE_YOUR_VIDEO_LINK_HERE)
+👉 [Demo Video](https://www.youtube.com/watch?v=aws_OTMKvaI)
 
 ---
 
